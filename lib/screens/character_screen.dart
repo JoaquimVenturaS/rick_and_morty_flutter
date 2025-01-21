@@ -1,17 +1,114 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:rick_and_morty_flutter/models/character_model.dart';
+import 'package:rick_and_morty_flutter/providers/api_provider.dart';
 
 class CharacterScreen extends StatelessWidget {
-  const CharacterScreen({super.key});
+  final Character character;
+  const CharacterScreen({super.key, required this.character});
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Rick And Morty'),
+        title: Text(character.name!),
         titleTextStyle: TextStyle(fontWeight: FontWeight.bold),
         centerTitle: true,
       ),
-      body: Text('Character'),
+      body: SizedBox(
+        height: double.infinity,
+        width: double.infinity,
+        child: Column(
+          children: [
+            SizedBox(
+              height: size.height * 0.35,
+              width: double.infinity,
+              child: Hero(
+                tag: character.id!,
+                child: Image.network(
+                  character.image!,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.all(10),
+              height: size.height * 0.14,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  cardData("Status", character.status!),
+                  cardData("Status", character.species!),
+                  cardData("Status", character.origin!.name!),
+                ],
+              ),
+            ),
+            Text(
+              'Episodes',
+              style: TextStyle(fontSize: 17),
+            ),
+            EpisodeList(size: size, character: character),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget cardData(String text1, String text2) {
+    return Expanded(
+        child: Card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          Text(text1),
+          Text(
+            text2,
+            style: TextStyle(overflow: TextOverflow.ellipsis),
+          )
+        ],
+      ),
+    ));
+  }
+}
+
+class EpisodeList extends StatefulWidget {
+  const EpisodeList({super.key, required this.size, required this.character});
+
+  final Size size;
+  final Character character;
+
+  @override
+  State<EpisodeList> createState() => _EpisodeListState();
+}
+
+class _EpisodeListState extends State<EpisodeList> {
+  @override
+  void initState() {
+    super.initState();
+    final apiProvider = Provider.of<ApiProvider>(context, listen: false);
+    apiProvider.getEpisodes(widget.character);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final apiProvider = Provider.of<ApiProvider>(context);
+    return SizedBox(
+      height: widget.size.height * 0.35,
+      child: ListView.builder(
+        itemCount: apiProvider.episodes.length,
+        itemBuilder: (context, index) {
+          final episode = apiProvider.episodes[index];
+          return ListTile(
+            leading: Text(episode.episode!),
+            title: Text(episode.name!),
+            trailing: Text(episode.airDate!),
+          );
+        },
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:rick_and_morty_flutter/providers/api_provider.dart';
+import 'package:rick_and_morty_flutter/widgets/search_delegate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,6 +48,13 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         titleTextStyle: TextStyle(fontWeight: FontWeight.bold),
         centerTitle: true,
+        actions: [
+          IconButton(
+              onPressed: () {
+                showSearch(context: context, delegate: SearchCharacter());
+              },
+              icon: Icon(Icons.search)),
+        ],
       ),
       body: SizedBox(
         height: double.infinity,
@@ -94,14 +102,17 @@ class CharacterList extends StatelessWidget {
           final character = apiProvider.characters[index];
           return GestureDetector(
               onTap: () {
-                context.push('/character');
+                context.push('/character', extra: character);
               },
               child: Card(
                 child: Column(
                   children: [
-                    FadeInImage(
-                      placeholder: AssetImage('assets/images/portal.gif'),
-                      image: NetworkImage(character.image!),
+                    Hero(
+                      tag: character.id!,
+                      child: FadeInImage(
+                        placeholder: AssetImage('assets/images/portal.gif'),
+                        image: NetworkImage(character.image!),
+                      ),
                     ),
                     Text(
                       character.name!,
